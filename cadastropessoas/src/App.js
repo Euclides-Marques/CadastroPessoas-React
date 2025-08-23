@@ -10,6 +10,7 @@ import { PlusCircle, Edit2 as Pencil, Trash2, Search, User, Home as Building, Ma
 function App() {
   const baseUrl = 'https://localhost:7171/Pessoas';
   const baseUrlCreate = 'https://localhost:7171/CreatePessoas';
+  const baseUrlUpdate = 'https://localhost:7171/UpdatePessoa';
 
   const [dados, setDados] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -40,7 +41,44 @@ function App() {
   });
   const registrosPorPagina = 5;
 
-  const handleShowModal = () => setShowModal(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [modalTitle, setModalTitle] = useState('Cadastro de Pessoa');
+
+  const handleEdit = (pessoa) => {
+    const dataNascimento = pessoa.dataNascimento ? new Date(pessoa.dataNascimento).toISOString().split('T')[0] : '';
+    
+    setFormData({
+      codigo: pessoa.codigo,
+      nome: pessoa.nome || '',
+      tipoPessoa: pessoa.tipoPessoa?.toString() || '',
+      documento: pessoa.documento || '',
+      dataNascimento: dataNascimento,
+      celular: pessoa.celular || '',
+      email: pessoa.email || '',
+      cep: pessoa.cep || '',
+      logradouro: pessoa.logradouro || '',
+      numero: pessoa.numero || '',
+      bairro: pessoa.bairro || '',
+      cidade: pessoa.cidade || '',
+      estado: pessoa.estado || '',
+      complemento: pessoa.complemento || ''
+    });
+
+    setTipoPessoaSelecionado(pessoa.tipoPessoa?.toString() || '');
+    setDocumentoFormatado(pessoa.documento ? formatarDocumento(pessoa.documento, pessoa.tipoPessoa) : '');
+    setCelularFormatado(pessoa.celular ? formatarCelular(pessoa.celular) : '');
+    setCepFormatado(pessoa.cep ? formatarCep(pessoa.cep) : '');
+    
+    setIsEditing(true);
+    setModalTitle('Editar Pessoa');
+    setShowModal(true);
+  };
+
+  const handleShowModal = () => {
+    setIsEditing(false);
+    setModalTitle('Cadastro de Pessoa');
+    setShowModal(true);
+  };
   const handleCloseModal = () => {
     setShowModal(false);
     setTipoPessoaSelecionado('');
@@ -63,6 +101,7 @@ function App() {
       estado: '',
       complemento: ''
     });
+    setIsEditing(false);
   };
 
   const buscarDados = async () => {
@@ -248,7 +287,7 @@ function App() {
     e.preventDefault();
 
     try {
-      const dadosParaEnvio = [{
+      const pessoaData = {
         Nome: formData.nome,
         TipoPessoa: parseInt(formData.tipoPessoa, 10),
         Documento: formData.documento,
@@ -263,28 +302,46 @@ function App() {
         Estado: formData.estado,
         Complemento: formData.complemento || '',
         Codigo: parseInt(formData.codigo, 10) || 0
-      }];
+      };
 
-      const response = await axios.post(baseUrlCreate, dadosParaEnvio, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
+      let response;
+      
+      if (isEditing) {
+        response = await axios.put(`${baseUrlUpdate}/${pessoaData.Codigo}`, pessoaData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+      } else {
+        response = await axios.post(baseUrlCreate, [pessoaData], {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+      }
 
       if (response.status === 200 || response.status === 201) {
-        setNotification({ show: true, message: 'Cadastro realizado com sucesso!', variant: 'success' });
+        setNotification({ 
+          show: true, 
+          message: isEditing ? 'Pessoa atualizada com sucesso!' : 'Cadastro realizado com sucesso!', 
+          variant: 'success' 
+        });
+        
         handleCloseModal();
         buscarDados();
         
         setTimeout(() => {
-          setNotification({ ...notification, show: false });
-          window.location.reload();
-        }, 3000);
+          setNotification(prev => ({ ...prev, show: false }));
+          if (isEditing) {
+            window.location.reload();
+          }
+        }, 1000);
       }
     } catch (error) {
       if (error.response) {
-        alert(`Erro ao cadastrar pessoa: ${error.response.data || 'Verifique os dados e tente novamente.'}`);
+        alert(`Erro ao ${isEditing ? 'atualizar' : 'cadastrar'} pessoa: ${error.response.data || 'Verifique os dados e tente novamente.'}`);
       } else {
         alert('Erro ao conectar ao servidor. Verifique sua conexão e tente novamente.');
       }
@@ -430,6 +487,7 @@ function App() {
                             size="sm"
                             className="px-2"
                             title="Editar"
+                            onClick={() => handleEdit(pessoa)}
                           >
                             <Pencil size={14} />
                           </Button>
@@ -459,7 +517,7 @@ function App() {
                 <Modal.Header closeButton className="bg-light">
                   <Modal.Title className="h5 mb-0">
                     <User size={20} className="me-2" />
-                    Cadastro de Pessoa
+                    {modalTitle}
                   </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="p-4">
@@ -476,13 +534,14 @@ function App() {
                               Código
                             </Form.Label>
                             <Form.Control
-                              type="number"
+                              type={isEditing ? "text" : "number"}
                               name="codigo"
                               required
-                              className="form-control-lg"
+                              className={`form-control-lg ${isEditing ? 'bg-light' : ''}`}
                               placeholder="Digite o código"
                               value={formData.codigo}
                               onChange={handleInputChange}
+                              readOnly={isEditing}
                             />
                             <div className="invalid-feedback">
                               Por favor, informe o código.
@@ -738,27 +797,14 @@ function App() {
                   </Form>
                 </Modal.Body>
                 <Modal.Footer className="bg-light border-top">
-                  <Button
-                    variant="outline-secondary"
-                    size="lg"
-                    onClick={handleCloseModal}
-                    className="px-4"
-                    type="button"
-                  >
-                    <i className="bi bi-x-lg me-2"></i>
-                    Cancelar
-                  </Button>
-                  <Button
-                    variant="primary"
-                    type="submit"
-                    size="lg"
-                    className="px-4"
-                    form="pessoaForm"
-                    disabled={!formData.nome || !formData.tipoPessoa || !formData.documento || !formData.dataNascimento || !formData.cep || !formData.logradouro || !formData.numero || !formData.bairro || !formData.cidade || !formData.estado}
-                  >
-                    <i className="bi bi-check-lg me-2"></i>
-                    Salvar Cadastro
-                  </Button>
+                    <div className="d-flex justify-content-end gap-2 mt-4">
+                      <Button variant="secondary" onClick={handleCloseModal}>
+                        Cancelar
+                      </Button>
+                      <Button variant="primary" type="submit" form="pessoaForm">
+                        {isEditing ? 'Atualizar' : 'Salvar'}
+                      </Button>
+                    </div>
                 </Modal.Footer>
               </Modal>
 
