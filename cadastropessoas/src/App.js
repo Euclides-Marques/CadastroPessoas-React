@@ -213,132 +213,264 @@ function App() {
                 </tbody>
               </Table>
 
-              <Modal show={mostrarModal} onHide={handleCloseModal}>
-                <Modal.Header>
-                  <Modal.Title>Incluir Pessoa</Modal.Title>
+              <Modal 
+                show={mostrarModal} 
+                onHide={handleCloseModal}
+                size="lg"
+                centered
+                backdrop="static"
+              >
+                <Modal.Header closeButton className="bg-light">
+                  <Modal.Title className="h5 mb-0">
+                    <User size={20} className="me-2" />
+                    Cadastro de Pessoa
+                  </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                  <Form>
-                    <Row className="mb-3">
-                      <Col md={12}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Código </Form.Label>
-                          <Form.Control type="number" required />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Nome </Form.Label>
-                          <Form.Control type="text" required />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Tipo de Pessoa </Form.Label>
-                          <Form.Select required>
-                            <option value="">Selecione...</option>
-                            <option value="0">Física</option>
-                            <option value="1">Jurídica</option>
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                    </Row>
-                    
-                    <Row className="mb-3">
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>CPF/CNPJ </Form.Label>
-                          <Form.Control type="text" required />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Data de Nascimento</Form.Label>
-                          <Form.Control type="date" />
-                        </Form.Group>
-                      </Col>
-                    </Row>
+                <Modal.Body className="p-4">
+                  <Form className="needs-validation" noValidate>
+                    <div className="mb-4">
+                      <h6 className="text-muted mb-3">
+                        <i className="bi bi-person-lines-fill me-2"></i>
+                        Dados Pessoais
+                      </h6>
+                      <Row className="g-3">
+                        <Col xs={12} md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              <span className="text-danger">*</span> Código
+                            </Form.Label>
+                            <Form.Control 
+                              type="number" 
+                              required 
+                              className="form-control-lg"
+                              placeholder="Digite o código"
+                            />
+                            <div className="invalid-feedback">
+                              Por favor, informe o código.
+                            </div>
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              <span className="text-danger">*</span> Nome Completo
+                            </Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              required 
+                              className="form-control-lg"
+                              placeholder="Digite o nome completo"
+                            />
+                            <div className="invalid-feedback">
+                              Por favor, informe o nome.
+                            </div>
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              <span className="text-danger">*</span> Tipo de Pessoa
+                            </Form.Label>
+                            <Form.Select 
+                              required 
+                              className="form-select-lg"
+                            >
+                              <option value="">Selecione o tipo...</option>
+                              <option value="0">Pessoa Física</option>
+                              <option value="1">Pessoa Jurídica</option>
+                            </Form.Select>
+                            <div className="invalid-feedback">
+                              Por favor, selecione o tipo de pessoa.
+                            </div>
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              <span className="text-danger">*</span> CPF/CNPJ
+                            </Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              required 
+                              className="form-control-lg"
+                              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                            />
+                            <div className="invalid-feedback">
+                              Por favor, informe um CPF ou CNPJ válido.
+                            </div>
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              Data de Nascimento
+                            </Form.Label>
+                            <Form.Control 
+                              type="date" 
+                              className="form-control-lg"
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                    </div>
 
-                    <Row className="mb-3">
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Celular</Form.Label>
-                          <Form.Control type="tel" placeholder="(00) 00000-0000" />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Email</Form.Label>
-                          <Form.Control type="email" />
-                        </Form.Group>
-                      </Col>
-                    </Row>
+                    <div className="mb-4 mt-4 pt-3 border-top">
+                      <h6 className="text-muted mb-3">
+                        <i className="bi bi-telephone-fill me-2"></i>
+                        Contato
+                      </h6>
+                      <Row className="g-3">
+                        <Col xs={12} md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              Celular
+                            </Form.Label>
+                            <Form.Control 
+                              type="tel" 
+                              className="form-control-lg"
+                              placeholder="(00) 00000-0000"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={6}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              E-mail
+                            </Form.Label>
+                            <Form.Control 
+                              type="email" 
+                              className="form-control-lg"
+                              placeholder="seu@email.com"
+                            />
+                            <div className="form-text">
+                              Enviaremos uma confirmação para este e-mail
+                            </div>
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                    </div>
 
-                    <Row className="mb-3">
-                      <Col md={3}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>CEP</Form.Label>
-                          <InputGroup>
-                            <Form.Control type="text" />
-                            <Button variant="outline-secondary">
-                              <Search size={14} />
-                            </Button>
-                          </InputGroup>
-                        </Form.Group>
-                      </Col>
-                      <Col md={7}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Endereço</Form.Label>
-                          <Form.Control type="text" />
-                        </Form.Group>
-                      </Col>
-                      <Col md={2}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Número</Form.Label>
-                          <Form.Control type="text" />
-                        </Form.Group>
-                      </Col>
-                    </Row>
-
-                    <Row className="mb-3">
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Bairro</Form.Label>
-                          <Form.Control type="text" />
-                        </Form.Group>
-                      </Col>
-                      <Col md={6}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Cidade</Form.Label>
-                          <Form.Control type="text" />
-                        </Form.Group>
-                      </Col>
-                      <Col md={2}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>UF</Form.Label>
-                          <Form.Select>
-                            <option value="">UF</option>
-                            {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
-                              <option key={uf} value={uf}>{uf}</option>
-                            ))}
-                          </Form.Select>
-                        </Form.Group>
-                      </Col>
-                    </Row>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>Complemento</Form.Label>
-                      <Form.Control as="textarea" rows={2} />
-                    </Form.Group>
-
+                    <div className="mb-4 mt-4 pt-3 border-top">
+                      <h6 className="text-muted mb-3">
+                        <i className="bi bi-geo-alt-fill me-2"></i>
+                        Endereço
+                      </h6>
+                      <Row className="g-3">
+                        <Col xs={12} md={4}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              CEP
+                            </Form.Label>
+                            <InputGroup>
+                              <Form.Control 
+                                type="text" 
+                                className="form-control-lg"
+                                placeholder="00000-000"
+                              />
+                              <Button 
+                                variant="outline-secondary" 
+                                className="d-flex align-items-center"
+                              >
+                                <Search size={16} />
+                              </Button>
+                            </InputGroup>
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={8}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              Logradouro
+                            </Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              className="form-control-lg"
+                              placeholder="Rua, Avenida, etc..."
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={3}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              Número
+                            </Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              className="form-control-lg"
+                              placeholder="Nº"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={5}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              Bairro
+                            </Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              className="form-control-lg"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={3}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              Cidade
+                            </Form.Label>
+                            <Form.Control 
+                              type="text" 
+                              className="form-control-lg"
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12} md={1}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              UF
+                            </Form.Label>
+                            <Form.Select className="form-select-lg">
+                              <option value="">UF</option>
+                              {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                                <option key={uf} value={uf}>{uf}</option>
+                              ))}
+                            </Form.Select>
+                          </Form.Group>
+                        </Col>
+                        <Col xs={12}>
+                          <Form.Group className="mb-3">
+                            <Form.Label className="form-label">
+                              Complemento
+                              <span className="text-muted small"> (Opcional)</span>
+                            </Form.Label>
+                            <Form.Control 
+                              as="textarea" 
+                              rows={2} 
+                              className="form-control-lg"
+                              placeholder="Apartamento, bloco, andar, etc..."
+                            />
+                          </Form.Group>
+                        </Col>
+                      </Row>
+                    </div>
                   </Form>
                 </Modal.Body>
-                <Modal.Footer>
-                  <Button variant="secondary" size="sm" onClick={handleCloseModal}>
+                <Modal.Footer className="bg-light border-top">
+                  <Button 
+                    variant="outline-secondary" 
+                    size="lg" 
+                    onClick={handleCloseModal}
+                    className="px-4"
+                  >
+                    <i className="bi bi-x-lg me-2"></i>
                     Cancelar
                   </Button>
-                  <Button variant="primary" type="submit" size="sm">
-                    Salvar
+                  <Button 
+                    variant="primary" 
+                    type="submit" 
+                    size="lg"
+                    className="px-4"
+                  >
+                    <i className="bi bi-check-lg me-2"></i>
+                    Salvar Cadastro
                   </Button>
                 </Modal.Footer>
               </Modal>
