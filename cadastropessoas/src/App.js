@@ -51,21 +51,21 @@ function App() {
         </thead>
         <tbody>
           {data.map(pessoa => (
-            <tr key={pessoa.Codigo}>
-              <td>{pessoa.Codigo}</td>
-              <td>{pessoa.Nome}</td>
-              <td>{pessoa.TipoPessoa}</td>
-              <td>{pessoa.Documento}</td>
-              <td>{pessoa.DataNascimento}</td>
-              <td>{pessoa.Celular}</td>
-              <td>{pessoa.Email}</td>
-              <td>{pessoa.Cep}</td>
-              <td>{pessoa.Logradouro}</td>
-              <td>{pessoa.Cidade}</td>
-              <td>{pessoa.Estado}</td>
-              <td>{pessoa.Bairro}</td>
-              <td>{pessoa.Complemento}</td>
-              <td>{pessoa.Numero}</td>
+            <tr key={pessoa.codigo}>
+              <td>{pessoa.codigo}</td>
+              <td>{pessoa.nome}</td>
+              <td>{pessoa.tipoPessoa === 0 ? 'Física' : 'Jurídica'}</td>
+              <td>{pessoa.documento}</td>
+              <td>{new Date(pessoa.dataNascimento).toLocaleDateString('pt-BR')}</td>
+              <td>{pessoa.celular}</td>
+              <td>{pessoa.email}</td>
+              <td>{pessoa.cep}</td>
+              <td>{pessoa.logradouro}</td>
+              <td>{pessoa.cidade}</td>
+              <td>{pessoa.estado}</td>
+              <td>{pessoa.bairro}</td>
+              <td>{pessoa.complemento || '-'}</td>
+              <td>{pessoa.numero}</td>
               <td>
                 <button className="btn btn-primary">Editar</button> {"  "}
                 <button className="btn btn-danger">Deletar</button>
