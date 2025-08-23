@@ -15,10 +15,20 @@ function App() {
   const [termoBusca, setTermoBusca] = useState('');
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [mostrarModal, setShowModal] = useState(false);
+  const [tipoPessoaSelecionado, setTipoPessoaSelecionado] = useState('');
+  const [documentoFormatado, setDocumentoFormatado] = useState('');
+  const [celularFormatado, setCelularFormatado] = useState('');
+  const [cepFormatado, setCepFormatado] = useState('');
   const registrosPorPagina = 5;
 
   const handleShowModal = () => setShowModal(true);
-  const handleCloseModal = () => setShowModal(false);
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setTipoPessoaSelecionado('');
+    setDocumentoFormatado('');
+    setCelularFormatado('');
+    setCepFormatado('');
+  };
 
   const buscarDados = async () => {
     const tempoInicial = Date.now();
@@ -62,18 +72,73 @@ function App() {
 
     const digitos = documento.replace(/\D/g, '');
 
-    if (tipo === 0) {
+    if (tipo === 0 || tipo === '0') {
       return digitos
+        .slice(0, 11)
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     } else {
       return digitos
+        .slice(0, 14)
         .replace(/^(\d{2})(\d)/, '$1.$2')
         .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
         .replace(/\.(\d{3})(\d)/, '.$1/$2')
         .replace(/(\d{4})(\d)/, '$1-$2');
     }
+  };
+
+  const handleDocumentoChange = (e) => {
+    const valor = e.target.value;
+    const digitos = valor.replace(/\D/g, '');
+    
+    // Aplica a máscara de acordo com o tipo de pessoa
+    const formatado = formatarDocumento(digitos, tipoPessoaSelecionado);
+    setDocumentoFormatado(formatado);
+  };
+
+  const formatarCelular = (valor) => {
+    const digitos = valor.replace(/\D/g, '').slice(0, 11);
+    
+    if (digitos.length <= 10) {
+      return digitos
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{4})(\d{1,4})/, '$1-$2')
+        .replace(/(\-\d{4})\d+?$/, '$1');
+    } else {
+      return digitos
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d{1,4})/, '$1-$2')
+        .replace(/(\-\d{4})\d+?$/, '$1');
+    }
+  };
+
+  const formatarCep = (valor) => {
+    const digitos = valor.replace(/\D/g, '').slice(0, 8);
+    if (digitos.length <= 5) {
+      return digitos;
+    }
+    return digitos.replace(/^(\d{5})(\d{1,3})$/, '$1-$2');
+  };
+
+  const handleCepChange = (e) => {
+    const valor = e.target.value;
+    const formatado = formatarCep(valor);
+    setCepFormatado(formatado);
+  };
+
+  const handleCelularChange = (e) => {
+    const valor = e.target.value;
+    const formatado = formatarCelular(valor);
+    setCelularFormatado(formatado);
+  };
+
+  const handleTipoPessoaChange = (e) => {
+    const novoTipo = e.target.value;
+    setTipoPessoaSelecionado(novoTipo);
+    
+    // Limpa o campo de documento ao mudar o tipo de pessoa
+    setDocumentoFormatado('');
   };
 
   const paginar = (numeroPagina) => setPaginaAtual(numeroPagina);
@@ -213,8 +278,8 @@ function App() {
                 </tbody>
               </Table>
 
-              <Modal 
-                show={mostrarModal} 
+              <Modal
+                show={mostrarModal}
                 onHide={handleCloseModal}
                 size="lg"
                 centered
@@ -237,11 +302,11 @@ function App() {
                         <Col xs={12} md={6}>
                           <Form.Group className="mb-3">
                             <Form.Label className="form-label">
-                              <span className="text-danger">*</span> Código
+                              Código
                             </Form.Label>
-                            <Form.Control 
-                              type="number" 
-                              required 
+                            <Form.Control
+                              type="number"
+                              required
                               className="form-control-lg"
                               placeholder="Digite o código"
                             />
@@ -253,11 +318,11 @@ function App() {
                         <Col xs={12} md={6}>
                           <Form.Group className="mb-3">
                             <Form.Label className="form-label">
-                              <span className="text-danger">*</span> Nome Completo
+                              Nome Completo
                             </Form.Label>
-                            <Form.Control 
-                              type="text" 
-                              required 
+                            <Form.Control
+                              type="text"
+                              required
                               className="form-control-lg"
                               placeholder="Digite o nome completo"
                             />
@@ -269,11 +334,13 @@ function App() {
                         <Col xs={12} md={6}>
                           <Form.Group className="mb-3">
                             <Form.Label className="form-label">
-                              <span className="text-danger">*</span> Tipo de Pessoa
+                              Tipo de Pessoa
                             </Form.Label>
-                            <Form.Select 
-                              required 
+                            <Form.Select
+                              required
                               className="form-select-lg"
+                              value={tipoPessoaSelecionado}
+                              onChange={handleTipoPessoaChange}
                             >
                               <option value="">Selecione o tipo...</option>
                               <option value="0">Pessoa Física</option>
@@ -287,13 +354,16 @@ function App() {
                         <Col xs={12} md={6}>
                           <Form.Group className="mb-3">
                             <Form.Label className="form-label">
-                              <span className="text-danger">*</span> CPF/CNPJ
+                              CPF/CNPJ
                             </Form.Label>
-                            <Form.Control 
-                              type="text" 
-                              required 
+                            <Form.Control
+                              type="text"
+                              required
                               className="form-control-lg"
-                              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+                              placeholder={tipoPessoaSelecionado === '0' ? '000.000.000-00' : '00.000.000/0000-00'}
+                              value={documentoFormatado}
+                              onChange={handleDocumentoChange}
+                              maxLength={tipoPessoaSelecionado === '0' ? 14 : 18}
                             />
                             <div className="invalid-feedback">
                               Por favor, informe um CPF ou CNPJ válido.
@@ -305,8 +375,8 @@ function App() {
                             <Form.Label className="form-label">
                               Data de Nascimento
                             </Form.Label>
-                            <Form.Control 
-                              type="date" 
+                            <Form.Control
+                              type="date"
                               className="form-control-lg"
                             />
                           </Form.Group>
@@ -325,10 +395,12 @@ function App() {
                             <Form.Label className="form-label">
                               Celular
                             </Form.Label>
-                            <Form.Control 
-                              type="tel" 
-                              className="form-control-lg"
+                            <Form.Control
+                              type="tel"
+                              value={celularFormatado}
+                              onChange={handleCelularChange}
                               placeholder="(00) 00000-0000"
+                              className="form-control-lg"
                             />
                           </Form.Group>
                         </Col>
@@ -337,14 +409,11 @@ function App() {
                             <Form.Label className="form-label">
                               E-mail
                             </Form.Label>
-                            <Form.Control 
-                              type="email" 
+                            <Form.Control
+                              type="email"
                               className="form-control-lg"
                               placeholder="seu@email.com"
                             />
-                            <div className="form-text">
-                              Enviaremos uma confirmação para este e-mail
-                            </div>
                           </Form.Group>
                         </Col>
                       </Row>
@@ -362,13 +431,15 @@ function App() {
                               CEP
                             </Form.Label>
                             <InputGroup>
-                              <Form.Control 
-                                type="text" 
+                              <Form.Control
+                                type="text"
                                 className="form-control-lg"
                                 placeholder="00000-000"
+                                value={cepFormatado}
+                                onChange={handleCepChange}
                               />
-                              <Button 
-                                variant="outline-secondary" 
+                              <Button
+                                variant="outline-secondary"
                                 className="d-flex align-items-center"
                               >
                                 <Search size={16} />
@@ -381,20 +452,20 @@ function App() {
                             <Form.Label className="form-label">
                               Logradouro
                             </Form.Label>
-                            <Form.Control 
-                              type="text" 
+                            <Form.Control
+                              type="text"
                               className="form-control-lg"
                               placeholder="Rua, Avenida, etc..."
                             />
                           </Form.Group>
                         </Col>
-                        <Col xs={12} md={3}>
+                        <Col xs={12} md={2}>
                           <Form.Group className="mb-3">
                             <Form.Label className="form-label">
                               Número
                             </Form.Label>
-                            <Form.Control 
-                              type="text" 
+                            <Form.Control
+                              type="number"
                               className="form-control-lg"
                               placeholder="Nº"
                             />
@@ -405,8 +476,8 @@ function App() {
                             <Form.Label className="form-label">
                               Bairro
                             </Form.Label>
-                            <Form.Control 
-                              type="text" 
+                            <Form.Control
+                              type="text"
                               className="form-control-lg"
                             />
                           </Form.Group>
@@ -416,20 +487,20 @@ function App() {
                             <Form.Label className="form-label">
                               Cidade
                             </Form.Label>
-                            <Form.Control 
-                              type="text" 
+                            <Form.Control
+                              type="text"
                               className="form-control-lg"
                             />
                           </Form.Group>
                         </Col>
-                        <Col xs={12} md={1}>
+                        <Col xs={12} md={2}>
                           <Form.Group className="mb-3">
                             <Form.Label className="form-label">
                               UF
                             </Form.Label>
                             <Form.Select className="form-select-lg">
                               <option value="">UF</option>
-                              {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                              {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
                                 <option key={uf} value={uf}>{uf}</option>
                               ))}
                             </Form.Select>
@@ -441,9 +512,9 @@ function App() {
                               Complemento
                               <span className="text-muted small"> (Opcional)</span>
                             </Form.Label>
-                            <Form.Control 
-                              as="textarea" 
-                              rows={2} 
+                            <Form.Control
+                              as="textarea"
+                              rows={2}
                               className="form-control-lg"
                               placeholder="Apartamento, bloco, andar, etc..."
                             />
@@ -454,18 +525,18 @@ function App() {
                   </Form>
                 </Modal.Body>
                 <Modal.Footer className="bg-light border-top">
-                  <Button 
-                    variant="outline-secondary" 
-                    size="lg" 
+                  <Button
+                    variant="outline-secondary"
+                    size="lg"
                     onClick={handleCloseModal}
                     className="px-4"
                   >
                     <i className="bi bi-x-lg me-2"></i>
                     Cancelar
                   </Button>
-                  <Button 
-                    variant="primary" 
-                    type="submit" 
+                  <Button
+                    variant="primary"
+                    type="submit"
                     size="lg"
                     className="px-4"
                   >
