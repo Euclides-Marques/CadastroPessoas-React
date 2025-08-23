@@ -19,6 +19,12 @@ function App() {
   const [documentoFormatado, setDocumentoFormatado] = useState('');
   const [celularFormatado, setCelularFormatado] = useState('');
   const [cepFormatado, setCepFormatado] = useState('');
+  const [endereco, setEndereco] = useState({
+    logradouro: '',
+    bairro: '',
+    localidade: '',
+    uf: ''
+  });
   const registrosPorPagina = 5;
 
   const handleShowModal = () => setShowModal(true);
@@ -92,7 +98,6 @@ function App() {
     const valor = e.target.value;
     const digitos = valor.replace(/\D/g, '');
     
-    // Aplica a máscara de acordo com o tipo de pessoa
     const formatado = formatarDocumento(digitos, tipoPessoaSelecionado);
     setDocumentoFormatado(formatado);
   };
@@ -121,6 +126,35 @@ function App() {
     return digitos.replace(/^(\d{5})(\d{1,3})$/, '$1-$2');
   };
 
+  const buscarEnderecoPorCep = async (cep) => {
+    try {
+      const cepLimpo = cep.replace(/\D/g, '');
+      if (cepLimpo.length !== 8) return;
+      
+      const resposta = await axios.get(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      
+      if (!resposta.data.erro) {
+        setEndereco({
+          logradouro: resposta.data.logradouro || '',
+          bairro: resposta.data.bairro || '',
+          localidade: resposta.data.localidade || '',
+          uf: resposta.data.uf || ''
+        });
+      } else {
+        setEndereco({
+          logradouro: '',
+          bairro: '',
+          localidade: '',
+          uf: ''
+        });
+        alert('CEP não encontrado');
+      }
+    } catch (erro) {
+      console.error('Erro ao buscar CEP:', erro);
+      alert('Erro ao buscar CEP. Tente novamente mais tarde.');
+    }
+  };
+
   const handleCepChange = (e) => {
     const valor = e.target.value;
     const formatado = formatarCep(valor);
@@ -137,7 +171,6 @@ function App() {
     const novoTipo = e.target.value;
     setTipoPessoaSelecionado(novoTipo);
     
-    // Limpa o campo de documento ao mudar o tipo de pessoa
     setDocumentoFormatado('');
   };
 
@@ -441,6 +474,9 @@ function App() {
                               <Button
                                 variant="outline-secondary"
                                 className="d-flex align-items-center"
+                                onClick={() => buscarEnderecoPorCep(cepFormatado)}
+                                disabled={cepFormatado.replace(/\D/g, '').length !== 8}
+                                title="Buscar CEP"
                               >
                                 <Search size={16} />
                               </Button>
@@ -456,6 +492,8 @@ function App() {
                               type="text"
                               className="form-control-lg"
                               placeholder="Rua, Avenida, etc..."
+                              value={endereco.logradouro}
+                              onChange={(e) => setEndereco({...endereco, logradouro: e.target.value})}
                             />
                           </Form.Group>
                         </Col>
@@ -479,6 +517,9 @@ function App() {
                             <Form.Control
                               type="text"
                               className="form-control-lg"
+                              value={endereco.bairro}
+                              onChange={(e) => setEndereco({...endereco, bairro: e.target.value})}
+                              placeholder="Digite o bairro"
                             />
                           </Form.Group>
                         </Col>
@@ -490,6 +531,9 @@ function App() {
                             <Form.Control
                               type="text"
                               className="form-control-lg"
+                              value={endereco.localidade}
+                              onChange={(e) => setEndereco({...endereco, localidade: e.target.value})}
+                              placeholder="Digite a cidade"
                             />
                           </Form.Group>
                         </Col>
@@ -498,7 +542,11 @@ function App() {
                             <Form.Label className="form-label">
                               UF
                             </Form.Label>
-                            <Form.Select className="form-select-lg">
+                            <Form.Select 
+                              className="form-select-lg"
+                              value={endereco.uf}
+                              onChange={(e) => setEndereco({...endereco, uf: e.target.value})}
+                            >
                               <option value="">UF</option>
                               {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
                                 <option key={uf} value={uf}>{uf}</option>
