@@ -9,6 +9,7 @@ import { PlusCircle, Edit2 as Pencil, Trash2, Search, User, Home as Building, Ma
 
 function App() {
   const baseUrl = 'https://localhost:7171/Pessoas';
+  const baseUrlCreate = 'https://localhost:7171/CreatePessoas';
 
   const [dados, setDados] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -19,11 +20,21 @@ function App() {
   const [documentoFormatado, setDocumentoFormatado] = useState('');
   const [celularFormatado, setCelularFormatado] = useState('');
   const [cepFormatado, setCepFormatado] = useState('');
-  const [endereco, setEndereco] = useState({
+  const [formData, setFormData] = useState({
+    codigo: '',
+    nome: '',
+    tipoPessoa: '',
+    documento: '',
+    dataNascimento: '',
+    celular: '',
+    email: '',
+    cep: '',
     logradouro: '',
+    numero: '',
     bairro: '',
-    localidade: '',
-    uf: ''
+    cidade: '',
+    estado: '',
+    complemento: ''
   });
   const registrosPorPagina = 5;
 
@@ -34,6 +45,22 @@ function App() {
     setDocumentoFormatado('');
     setCelularFormatado('');
     setCepFormatado('');
+    setFormData({
+      codigo: '',
+      nome: '',
+      tipoPessoa: '',
+      documento: '',
+      dataNascimento: '',
+      celular: '',
+      email: '',
+      cep: '',
+      logradouro: '',
+      numero: '',
+      bairro: '',
+      cidade: '',
+      estado: '',
+      complemento: ''
+    });
   };
 
   const buscarDados = async () => {
@@ -51,8 +78,6 @@ function App() {
 
       setDados(resposta.data);
     } catch (erro) {
-      console.error('Erro ao carregar dados:', erro);
-    } finally {
       setCarregando(false);
     }
   };
@@ -97,14 +122,19 @@ function App() {
   const handleDocumentoChange = (e) => {
     const valor = e.target.value;
     const digitos = valor.replace(/\D/g, '');
-    
+
     const formatado = formatarDocumento(digitos, tipoPessoaSelecionado);
     setDocumentoFormatado(formatado);
+    setFormData(prev => ({
+      ...prev,
+      documento: digitos,
+      tipoPessoa: tipoPessoaSelecionado
+    }));
   };
 
   const formatarCelular = (valor) => {
     const digitos = valor.replace(/\D/g, '').slice(0, 11);
-    
+
     if (digitos.length <= 10) {
       return digitos
         .replace(/^(\d{2})(\d)/, '($1) $2')
@@ -129,29 +159,46 @@ function App() {
   const buscarEnderecoPorCep = async (cep) => {
     try {
       const cepLimpo = cep.replace(/\D/g, '');
-      if (cepLimpo.length !== 8) return;
-      
+      if (cepLimpo.length !== 8) {
+        alert('CEP deve conter 8 dígitos');
+        return;
+      }
+
+      const cepInput = document.querySelector('input[name="cep"]');
+      const searchButton = cepInput?.nextElementSibling;
+      if (searchButton) {
+        searchButton.disabled = true;
+        searchButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+      }
+
       const resposta = await axios.get(`https://viacep.com.br/ws/${cepLimpo}/json/`);
-      
+
       if (!resposta.data.erro) {
-        setEndereco({
+        setFormData(prev => ({
+          ...prev,
           logradouro: resposta.data.logradouro || '',
           bairro: resposta.data.bairro || '',
-          localidade: resposta.data.localidade || '',
-          uf: resposta.data.uf || ''
-        });
+          cidade: resposta.data.localidade || '',
+          estado: resposta.data.uf || ''
+        }));
       } else {
-        setEndereco({
+        setFormData(prev => ({
+          ...prev,
           logradouro: '',
           bairro: '',
-          localidade: '',
-          uf: ''
-        });
+          cidade: '',
+          estado: ''
+        }));
         alert('CEP não encontrado');
       }
     } catch (erro) {
-      console.error('Erro ao buscar CEP:', erro);
-      alert('Erro ao buscar CEP. Tente novamente mais tarde.');
+      alert('Erro ao buscar CEP. Verifique se o CEP está correto e tente novamente.');
+    } finally {
+      const searchButton = document.querySelector('input[name="cep"]')?.nextElementSibling;
+      if (searchButton) {
+        searchButton.disabled = false;
+        searchButton.innerHTML = '<i class="bi bi-search"></i>';
+      }
     }
   };
 
@@ -159,19 +206,81 @@ function App() {
     const valor = e.target.value;
     const formatado = formatarCep(valor);
     setCepFormatado(formatado);
+    setFormData(prev => ({
+      ...prev,
+      cep: valor.replace(/\D/g, '')
+    }));
   };
 
   const handleCelularChange = (e) => {
     const valor = e.target.value;
     const formatado = formatarCelular(valor);
     setCelularFormatado(formatado);
+    setFormData(prev => ({
+      ...prev,
+      celular: valor.replace(/\D/g, '')
+    }));
   };
 
   const handleTipoPessoaChange = (e) => {
     const novoTipo = e.target.value;
     setTipoPessoaSelecionado(novoTipo);
-    
     setDocumentoFormatado('');
+    setFormData(prev => ({
+      ...prev,
+      tipoPessoa: novoTipo,
+      documento: ''
+    }));
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const dadosParaEnvio = [{
+        Nome: formData.nome,
+        TipoPessoa: parseInt(formData.tipoPessoa, 10),
+        Documento: formData.documento,
+        DataNascimento: formData.dataNascimento ? new Date(formData.dataNascimento) : null,
+        Celular: formData.celular,
+        Email: formData.email,
+        Cep: formData.cep,
+        Logradouro: formData.logradouro,
+        Numero: formData.numero,
+        Bairro: formData.bairro,
+        Cidade: formData.cidade,
+        Estado: formData.estado,
+        Complemento: formData.complemento || '',
+        Codigo: parseInt(formData.codigo, 10) || 0
+      }];
+
+      const response = await axios.post(baseUrlCreate, dadosParaEnvio, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (response.status === 200 || response.status === 201) {
+        alert('Pessoa cadastrada com sucesso!');
+        handleCloseModal();
+        buscarDados();
+      }
+    } catch (error) {
+      if (error.response) {
+        alert(`Erro ao cadastrar pessoa: ${error.response.data || 'Verifique os dados e tente novamente.'}`);
+      } else {
+        alert('Erro ao conectar ao servidor. Verifique sua conexão e tente novamente.');
+      }
+    }
   };
 
   const paginar = (numeroPagina) => setPaginaAtual(numeroPagina);
@@ -325,7 +434,7 @@ function App() {
                   </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="p-4">
-                  <Form className="needs-validation" noValidate>
+                  <Form id="pessoaForm" className="needs-validation" noValidate onSubmit={handleSubmit}>
                     <div className="mb-4">
                       <h6 className="text-muted mb-3">
                         <i className="bi bi-person-lines-fill me-2"></i>
@@ -339,9 +448,12 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               type="number"
+                              name="codigo"
                               required
                               className="form-control-lg"
                               placeholder="Digite o código"
+                              value={formData.codigo}
+                              onChange={handleInputChange}
                             />
                             <div className="invalid-feedback">
                               Por favor, informe o código.
@@ -355,9 +467,12 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               type="text"
+                              name="nome"
                               required
                               className="form-control-lg"
                               placeholder="Digite o nome completo"
+                              value={formData.nome}
+                              onChange={handleInputChange}
                             />
                             <div className="invalid-feedback">
                               Por favor, informe o nome.
@@ -370,6 +485,7 @@ function App() {
                               Tipo de Pessoa
                             </Form.Label>
                             <Form.Select
+                              name="tipoPessoa"
                               required
                               className="form-select-lg"
                               value={tipoPessoaSelecionado}
@@ -391,6 +507,7 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               type="text"
+                              name="documento"
                               required
                               className="form-control-lg"
                               placeholder={tipoPessoaSelecionado === '0' ? '000.000.000-00' : '00.000.000/0000-00'}
@@ -410,7 +527,10 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               type="date"
+                              name="dataNascimento"
                               className="form-control-lg"
+                              value={formData.dataNascimento}
+                              onChange={handleInputChange}
                             />
                           </Form.Group>
                         </Col>
@@ -430,10 +550,11 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               type="tel"
+                              name="celular"
+                              className="form-control-lg"
+                              placeholder="(00) 00000-0000"
                               value={celularFormatado}
                               onChange={handleCelularChange}
-                              placeholder="(00) 00000-0000"
-                              className="form-control-lg"
                             />
                           </Form.Group>
                         </Col>
@@ -444,8 +565,11 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               type="email"
+                              name="email"
                               className="form-control-lg"
                               placeholder="seu@email.com"
+                              value={formData.email}
+                              onChange={handleInputChange}
                             />
                           </Form.Group>
                         </Col>
@@ -466,16 +590,18 @@ function App() {
                             <InputGroup>
                               <Form.Control
                                 type="text"
+                                name="cep"
                                 className="form-control-lg"
                                 placeholder="00000-000"
                                 value={cepFormatado}
                                 onChange={handleCepChange}
+                                maxLength={9}
                               />
                               <Button
                                 variant="outline-secondary"
                                 className="d-flex align-items-center"
                                 onClick={() => buscarEnderecoPorCep(cepFormatado)}
-                                disabled={cepFormatado.replace(/\D/g, '').length !== 8}
+                                disabled={!cepFormatado || cepFormatado.replace(/\D/g, '').length !== 8}
                                 title="Buscar CEP"
                               >
                                 <Search size={16} />
@@ -490,10 +616,11 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               type="text"
+                              name="logradouro"
                               className="form-control-lg"
                               placeholder="Rua, Avenida, etc..."
-                              value={endereco.logradouro}
-                              onChange={(e) => setEndereco({...endereco, logradouro: e.target.value})}
+                              value={formData.logradouro}
+                              onChange={handleInputChange}
                             />
                           </Form.Group>
                         </Col>
@@ -503,9 +630,12 @@ function App() {
                               Número
                             </Form.Label>
                             <Form.Control
-                              type="number"
+                              type="text"
+                              name="numero"
                               className="form-control-lg"
-                              placeholder="Nº"
+                              placeholder="Número"
+                              value={formData.numero}
+                              onChange={handleInputChange}
                             />
                           </Form.Group>
                         </Col>
@@ -516,10 +646,11 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               type="text"
+                              name="bairro"
                               className="form-control-lg"
-                              value={endereco.bairro}
-                              onChange={(e) => setEndereco({...endereco, bairro: e.target.value})}
                               placeholder="Digite o bairro"
+                              value={formData.bairro}
+                              onChange={handleInputChange}
                             />
                           </Form.Group>
                         </Col>
@@ -530,10 +661,11 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               type="text"
+                              name="cidade"
                               className="form-control-lg"
-                              value={endereco.localidade}
-                              onChange={(e) => setEndereco({...endereco, localidade: e.target.value})}
                               placeholder="Digite a cidade"
+                              value={formData.cidade}
+                              onChange={handleInputChange}
                             />
                           </Form.Group>
                         </Col>
@@ -542,10 +674,11 @@ function App() {
                             <Form.Label className="form-label">
                               UF
                             </Form.Label>
-                            <Form.Select 
+                            <Form.Select
+                              name="estado"
                               className="form-select-lg"
-                              value={endereco.uf}
-                              onChange={(e) => setEndereco({...endereco, uf: e.target.value})}
+                              value={formData.estado}
+                              onChange={handleInputChange}
                             >
                               <option value="">UF</option>
                               {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
@@ -562,9 +695,12 @@ function App() {
                             </Form.Label>
                             <Form.Control
                               as="textarea"
+                              name="complemento"
                               rows={2}
                               className="form-control-lg"
-                              placeholder="Apartamento, bloco, andar, etc..."
+                              placeholder="Complemento (opcional)"
+                              value={formData.complemento}
+                              onChange={handleInputChange}
                             />
                           </Form.Group>
                         </Col>
@@ -578,6 +714,7 @@ function App() {
                     size="lg"
                     onClick={handleCloseModal}
                     className="px-4"
+                    type="button"
                   >
                     <i className="bi bi-x-lg me-2"></i>
                     Cancelar
@@ -587,6 +724,8 @@ function App() {
                     type="submit"
                     size="lg"
                     className="px-4"
+                    form="pessoaForm"
+                    disabled={!formData.nome || !formData.tipoPessoa || !formData.documento || !formData.dataNascimento || !formData.cep || !formData.logradouro || !formData.numero || !formData.bairro || !formData.cidade || !formData.estado}
                   >
                     <i className="bi bi-check-lg me-2"></i>
                     Salvar Cadastro
