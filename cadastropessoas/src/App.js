@@ -3,6 +3,7 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
 import { Container, Row, Col, Card, Table, Button, Spinner, Badge, Form, InputGroup, Alert } from 'react-bootstrap';
+import { Modal } from 'react-bootstrap';
 import { PlusCircle, Edit2 as Pencil, Trash2, Search, User, Home as Building, MapPin as MapPinIcon } from 'react-feather';
 
 
@@ -13,7 +14,11 @@ function App() {
   const [carregando, setCarregando] = useState(true);
   const [termoBusca, setTermoBusca] = useState('');
   const [paginaAtual, setPaginaAtual] = useState(1);
+  const [mostrarModal, setShowModal] = useState(false);
   const registrosPorPagina = 5;
+
+  const handleShowModal = () => setShowModal(true);
+  const handleCloseModal = () => setShowModal(false);
 
   const buscarDados = async () => {
     const tempoInicial = Date.now();
@@ -88,7 +93,7 @@ function App() {
             </Col>
             <Col xs={12} md={6} className="mt-2 mt-md-0">
               <div className="d-flex justify-content-center justify-content-md-end">
-                <Button variant="primary" size="sm">
+                <Button variant="primary" size="sm" onClick={handleShowModal}>
                   <PlusCircle size={16} className="me-1" />
                   <span className="d-none d-sm-inline">Nova Pessoa</span>
                   <span className="d-inline d-sm-none">Novo</span>
@@ -207,6 +212,137 @@ function App() {
                   ))}
                 </tbody>
               </Table>
+
+              <Modal show={mostrarModal} onHide={handleCloseModal}>
+                <Modal.Header>
+                  <Modal.Title>Incluir Pessoa</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  <Form>
+                    <Row className="mb-3">
+                      <Col md={12}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Código </Form.Label>
+                          <Form.Control type="number" required />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Nome </Form.Label>
+                          <Form.Control type="text" required />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Tipo de Pessoa </Form.Label>
+                          <Form.Select required>
+                            <option value="">Selecione...</option>
+                            <option value="0">Física</option>
+                            <option value="1">Jurídica</option>
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                    
+                    <Row className="mb-3">
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>CPF/CNPJ </Form.Label>
+                          <Form.Control type="text" required />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Data de Nascimento</Form.Label>
+                          <Form.Control type="date" />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+
+                    <Row className="mb-3">
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Celular</Form.Label>
+                          <Form.Control type="tel" placeholder="(00) 00000-0000" />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Email</Form.Label>
+                          <Form.Control type="email" />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+
+                    <Row className="mb-3">
+                      <Col md={3}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>CEP</Form.Label>
+                          <InputGroup>
+                            <Form.Control type="text" />
+                            <Button variant="outline-secondary">
+                              <Search size={14} />
+                            </Button>
+                          </InputGroup>
+                        </Form.Group>
+                      </Col>
+                      <Col md={7}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Endereço</Form.Label>
+                          <Form.Control type="text" />
+                        </Form.Group>
+                      </Col>
+                      <Col md={2}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Número</Form.Label>
+                          <Form.Control type="text" />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+
+                    <Row className="mb-3">
+                      <Col md={4}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Bairro</Form.Label>
+                          <Form.Control type="text" />
+                        </Form.Group>
+                      </Col>
+                      <Col md={6}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>Cidade</Form.Label>
+                          <Form.Control type="text" />
+                        </Form.Group>
+                      </Col>
+                      <Col md={2}>
+                        <Form.Group className="mb-3">
+                          <Form.Label>UF</Form.Label>
+                          <Form.Select>
+                            <option value="">UF</option>
+                            {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(uf => (
+                              <option key={uf} value={uf}>{uf}</option>
+                            ))}
+                          </Form.Select>
+                        </Form.Group>
+                      </Col>
+                    </Row>
+
+                    <Form.Group className="mb-3">
+                      <Form.Label>Complemento</Form.Label>
+                      <Form.Control as="textarea" rows={2} />
+                    </Form.Group>
+
+                  </Form>
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button variant="secondary" size="sm" onClick={handleCloseModal}>
+                    Cancelar
+                  </Button>
+                  <Button variant="primary" type="submit" size="sm">
+                    Salvar
+                  </Button>
+                </Modal.Footer>
+              </Modal>
+
             </div>
           )}
         </Card.Body>
