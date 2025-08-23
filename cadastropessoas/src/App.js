@@ -3,7 +3,7 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
 import { Modal, ModalBody, ModalFooter, ModalHeader } from 'reactstrap';
-import logoCadastro from './assets';
+
 
 function App() {
   const baseUrl = 'https://localhost:7171/Pessoas';
@@ -28,7 +28,6 @@ function App() {
       <br />
       <h3>Cadatro de Pessoas</h3>
       <header>
-        <img src={logo} alt="Cadastro"></img>
         <button className="btn btn-success">Incluir nova pessoa</button>
       </header>
       <table className="table table-borded">
