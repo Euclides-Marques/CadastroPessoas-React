@@ -1,4 +1,3 @@
-/* Base Styles */
 :root {
   --primary: #4361ee;
   --secondary: #3f37c9;
@@ -33,7 +32,6 @@ body {
   height: 100vh;
 }
 
-/* Card Styles */
 .card {
   border: none;
   border-radius: 0.5rem;
@@ -51,7 +49,6 @@ body {
   padding: 1rem 1.25rem;
 }
 
-/* Table Styles */
 .table {
   margin-bottom: 0;
 }
@@ -77,7 +74,6 @@ body {
   background-color: rgba(67, 97, 238, 0.05);
 }
 
-/* Button Styles */
 .btn {
   font-weight: 500;
   padding: 0.375rem 0.75rem;
@@ -111,14 +107,12 @@ body {
   border-color: var(--primary);
 }
 
-/* Badge Styles */
 .badge {
   font-weight: 500;
   padding: 0.35em 0.65em;
   font-size: 0.75em;
 }
 
-/* Avatar */
 .avatar-sm {
   width: 2rem;
   height: 2rem;
@@ -130,7 +124,6 @@ body {
   border-radius: 50%;
 }
 
-/* Utilities */
 .shadow-sm {
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
 }
@@ -143,7 +136,6 @@ body {
   font-weight: 600 !important;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .table-responsive {
     border: 0;
@@ -186,7 +178,6 @@ body {
   }
 }
 
-/* Loading Spinner */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -197,7 +188,6 @@ body {
   border-width: 0.2em;
 }
 
-/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
