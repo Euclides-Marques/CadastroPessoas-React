@@ -26,6 +26,13 @@ body {
   line-height: 1.6;
 }
 
+#root{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
 /* Card Styles */
 .card {
   border: none;
