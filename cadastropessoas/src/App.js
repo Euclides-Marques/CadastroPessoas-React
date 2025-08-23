@@ -11,6 +11,7 @@ function App() {
   const baseUrl = 'https://localhost:7171/Pessoas';
   const baseUrlCreate = 'https://localhost:7171/CreatePessoas';
   const baseUrlUpdate = 'https://localhost:7171/UpdatePessoa';
+  const baseUrlDelete = 'https://localhost:7171/DeletePessoa';
 
   const [dados, setDados] = useState([]);
   const [carregando, setCarregando] = useState(true);
@@ -43,6 +44,8 @@ function App() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [modalTitle, setModalTitle] = useState('Cadastro de Pessoa');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [pessoaToDelete, setPessoaToDelete] = useState(null);
 
   const handleEdit = (pessoa) => {
     const dataNascimento = pessoa.dataNascimento ? new Date(pessoa.dataNascimento).toISOString().split('T')[0] : '';
@@ -102,6 +105,43 @@ function App() {
       complemento: ''
     });
     setIsEditing(false);
+  };
+
+  const handleDeleteClick = (pessoa) => {
+    setPessoaToDelete(pessoa);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!pessoaToDelete) return;
+    
+    try {
+      const response = await axios.delete(`${baseUrlDelete}/${pessoaToDelete.codigo}`);
+      
+      if (response.status === 200) {
+        setNotification({
+          show: true,
+          message: 'Pessoa excluída com sucesso!',
+          variant: 'success'
+        });
+        
+        buscarDados();
+        
+        setTimeout(() => {
+          setNotification(prev => ({ ...prev, show: false }));
+          window.location.reload();
+        }, 1000);
+      }
+    } catch (error) {
+      setNotification({
+        show: true,
+        message: 'Erro ao excluir pessoa. Tente novamente.',
+        variant: 'danger'
+      });
+    } finally {
+      setShowDeleteModal(false);
+      setPessoaToDelete(null);
+    }
   };
 
   const buscarDados = async () => {
@@ -497,6 +537,7 @@ function App() {
                             size="sm"
                             className="px-2"
                             title="Excluir"
+                            onClick={() => handleDeleteClick(pessoa)}
                           >
                             <Trash2 size={14} />
                           </Button>
@@ -805,6 +846,28 @@ function App() {
                         {isEditing ? 'Atualizar' : 'Salvar'}
                       </Button>
                     </div>
+                </Modal.Footer>
+              </Modal>
+
+              {/* Delete Confirmation Modal */}
+              <Modal
+                show={showDeleteModal}
+                onHide={() => setShowDeleteModal(false)}
+                centered
+              >
+                <Modal.Header closeButton>
+                  <Modal.Title>Confirmar Exclusão</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                  Tem certeza que deseja excluir a pessoa <strong>{pessoaToDelete?.nome}</strong>? Esta ação não pode ser desfeita.
+                </Modal.Body>
+                <Modal.Footer>
+                  <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+                    Cancelar
+                  </Button>
+                  <Button variant="danger" onClick={handleConfirmDelete}>
+                    Confirmar Exclusão
+                  </Button>
                 </Modal.Footer>
               </Modal>
 
