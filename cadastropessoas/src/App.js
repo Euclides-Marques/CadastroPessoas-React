@@ -20,7 +20,8 @@ function App() {
   const [documentoFormatado, setDocumentoFormatado] = useState('');
   const [celularFormatado, setCelularFormatado] = useState('');
   const [cepFormatado, setCepFormatado] = useState('');
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [notification, setNotification] = useState({ show: false, message: '', variant: 'success' });
+  const [isSearchingCep, setIsSearchingCep] = useState(false);
   const [formData, setFormData] = useState({
     codigo: '',
     nome: '',
@@ -167,12 +168,7 @@ function App() {
         return;
       }
 
-      const cepInput = document.querySelector('input[name="cep"]');
-      const searchButton = cepInput?.nextElementSibling;
-      if (searchButton) {
-        searchButton.disabled = true;
-        searchButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
-      }
+      setIsSearchingCep(true);
 
       const resposta = await axios.get(`https://viacep.com.br/ws/${cepLimpo}/json/`);
 
@@ -192,16 +188,20 @@ function App() {
           cidade: '',
           estado: ''
         }));
-        alert('CEP não encontrado');
+        setNotification({ show: true, message: 'CEP não encontrado', variant: 'danger' });
+        
+        setTimeout(() => {
+          setNotification({ ...notification, show: false });
+        }, 3000);
       }
     } catch (erro) {
-      alert('Erro ao buscar CEP. Verifique se o CEP está correto e tente novamente.');
+      setNotification({ show: true, message: 'Erro ao buscar CEP. Verifique se o CEP está correto e tente novamente.', variant: 'danger' });
+      
+      setTimeout(() => {
+        setNotification({ ...notification, show: false });
+      }, 3000);
     } finally {
-      const searchButton = document.querySelector('input[name="cep"]')?.nextElementSibling;
-      if (searchButton) {
-        searchButton.disabled = false;
-        searchButton.innerHTML = '<i class="bi bi-search"></i>';
-      }
+      setIsSearchingCep(false);
     }
   };
 
@@ -273,12 +273,12 @@ function App() {
       });
 
       if (response.status === 200 || response.status === 201) {
-        setShowSuccess(true);
+        setNotification({ show: true, message: 'Cadastro realizado com sucesso!', variant: 'success' });
         handleCloseModal();
         buscarDados();
         
         setTimeout(() => {
-          setShowSuccess(false);
+          setNotification({ ...notification, show: false });
           window.location.reload();
         }, 3000);
       }
@@ -295,11 +295,15 @@ function App() {
 
   return (
     <Container fluid className="py-2 py-md-3 py-lg-4 px-2 px-md-3">
-      {showSuccess && (
+      {notification.show && (
         <div className="position-fixed top-20 start-50 translate-middle" style={{ zIndex: 9999, minWidth: '300px' }}>
-          <Alert variant="success" onClose={() => setShowSuccess(false)} dismissible>
-            <Alert.Heading>Sucesso!</Alert.Heading>
-            <p>Cadastro realizado com sucesso!</p>
+          <Alert 
+            variant={notification.variant} 
+            onClose={() => setNotification({ ...notification, show: false })} 
+            dismissible
+          >
+            <Alert.Heading>{notification.variant === 'success' ? 'Sucesso!' : 'Erro'}</Alert.Heading>
+            <p>{notification.message}</p>
           </Alert>
         </div>
       )}
@@ -339,9 +343,18 @@ function App() {
                   }}
                   className="border-start-0"
                 />
-                <InputGroup.Text className="bg-light">
-                  <Search size={14} />
-                </InputGroup.Text>
+                <Button 
+                  variant="outline-secondary" 
+                  id="btn-pesquisar-cep" 
+                  onClick={() => buscarEnderecoPorCep(formData.cep)}
+                  disabled={isSearchingCep}
+                >
+                  {isSearchingCep ? (
+                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  ) : (
+                    <Search size={14} />
+                  )}
+                </Button>
               </InputGroup>
             </div>
           </div>
