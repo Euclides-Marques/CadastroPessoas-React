@@ -20,6 +20,7 @@ function App() {
   const [documentoFormatado, setDocumentoFormatado] = useState('');
   const [celularFormatado, setCelularFormatado] = useState('');
   const [cepFormatado, setCepFormatado] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
     codigo: '',
     nome: '',
@@ -78,6 +79,8 @@ function App() {
 
       setDados(resposta.data);
     } catch (erro) {
+      return;
+    } finally {
       setCarregando(false);
     }
   };
@@ -270,9 +273,14 @@ function App() {
       });
 
       if (response.status === 200 || response.status === 201) {
-        alert('Pessoa cadastrada com sucesso!');
+        setShowSuccess(true);
         handleCloseModal();
         buscarDados();
+        
+        setTimeout(() => {
+          setShowSuccess(false);
+          window.location.reload();
+        }, 3000);
       }
     } catch (error) {
       if (error.response) {
@@ -287,6 +295,14 @@ function App() {
 
   return (
     <Container fluid className="py-2 py-md-3 py-lg-4 px-2 px-md-3">
+      {showSuccess && (
+        <div className="position-fixed top-20 start-50 translate-middle" style={{ zIndex: 9999, minWidth: '300px' }}>
+          <Alert variant="success" onClose={() => setShowSuccess(false)} dismissible>
+            <Alert.Heading>Sucesso!</Alert.Heading>
+            <p>Cadastro realizado com sucesso!</p>
+          </Alert>
+        </div>
+      )}
       <Card className="shadow-sm">
         <Card.Header className="bg-white py-2 py-md-3">
           <Row className="align-items-center g-2">
