@@ -9,61 +9,61 @@ import { PlusCircle, Edit2 as Pencil, Trash2, Search, User, Home as Building, Ma
 function App() {
   const baseUrl = 'https://localhost:7171/Pessoas';
 
-  const [data, setData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const recordsPerPage = 5;
+  const [dados, setDados] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [termoBusca, setTermoBusca] = useState('');
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const registrosPorPagina = 5;
 
-  const fetchData = async () => {
-    const startTime = Date.now();
-    const MIN_LOADING_TIME = 3000;
+  const buscarDados = async () => {
+    const tempoInicial = Date.now();
+    const TEMPO_MINIMO_CARREGAMENTO = 3000;
 
     try {
-      const response = await axios.get(baseUrl);
-      const endTime = Date.now();
-      const timeElapsed = endTime - startTime;
+      const resposta = await axios.get(baseUrl);
+      const tempoFinal = Date.now();
+      const tempoDecorrido = tempoFinal - tempoInicial;
 
-      if (timeElapsed < MIN_LOADING_TIME) {
-        await new Promise(resolve => setTimeout(resolve, MIN_LOADING_TIME - timeElapsed));
+      if (tempoDecorrido < TEMPO_MINIMO_CARREGAMENTO) {
+        await new Promise(resolver => setTimeout(resolver, TEMPO_MINIMO_CARREGAMENTO - tempoDecorrido));
       }
 
-      setData(response.data);
-    } catch (error) {
-      console.error('Erro ao carregar dados:', error);
+      setDados(resposta.data);
+    } catch (erro) {
+      console.error('Erro ao carregar dados:', erro);
     } finally {
-      setIsLoading(false);
+      setCarregando(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    buscarDados();
   }, []);
 
-  const filteredData = data.filter(pessoa =>
+  const dadosFiltrados = dados.filter(pessoa =>
     Object.values(pessoa).some(
-      value => value &&
-        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      valor => valor &&
+        valor.toString().toLowerCase().includes(termoBusca.toLowerCase())
     )
   );
 
-  const indexOfLastRecord = currentPage * recordsPerPage;
-  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
-  const currentRecords = filteredData.slice(indexOfFirstRecord, indexOfLastRecord);
-  const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+  const indiceUltimoRegistro = paginaAtual * registrosPorPagina;
+  const indicePrimeiroRegistro = indiceUltimoRegistro - registrosPorPagina;
+  const registrosAtuais = dadosFiltrados.slice(indicePrimeiroRegistro, indiceUltimoRegistro);
+  const totalPaginas = Math.ceil(dadosFiltrados.length / registrosPorPagina);
 
-  const formatDocument = (document, type) => {
-    if (!document) return '';
+  const formatarDocumento = (documento, tipo) => {
+    if (!documento) return '';
 
-    const digits = document.replace(/\D/g, '');
+    const digitos = documento.replace(/\D/g, '');
 
-    if (type === 0) {
-      return digits
+    if (tipo === 0) {
+      return digitos
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d)/, '$1.$2')
         .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
     } else {
-      return digits
+      return digitos
         .replace(/^(\d{2})(\d)/, '$1.$2')
         .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
         .replace(/\.(\d{3})(\d)/, '.$1/$2')
@@ -71,7 +71,7 @@ function App() {
     }
   };
 
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const paginar = (numeroPagina) => setPaginaAtual(numeroPagina);
 
   return (
     <Container fluid className="py-2 py-md-3 py-lg-4 px-2 px-md-3">
@@ -104,10 +104,10 @@ function App() {
               <InputGroup size="sm">
                 <Form.Control
                   placeholder="Buscar pelo código ou pelo nome..."
-                  value={searchTerm}
+                  value={termoBusca}
                   onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
+                    setTermoBusca(e.target.value);
+                    setPaginaAtual(1);
                   }}
                   className="border-start-0"
                 />
@@ -118,14 +118,14 @@ function App() {
             </div>
           </div>
 
-          {isLoading ? (
+          {carregando ? (
             <div className="text-center py-5">
               <Spinner animation="border" role="status">
                 <span className="visually-hidden">Carregando...</span>
               </Spinner>
               <p className="mt-2">Carregando dados...</p>
             </div>
-          ) : filteredData.length === 0 ? (
+          ) : dadosFiltrados.length === 0 ? (
             <Alert variant="info" className="text-center">
               Nenhum registro encontrado
             </Alert>
@@ -152,7 +152,7 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentRecords.map(pessoa => (
+                  {registrosAtuais.map(pessoa => (
                     <tr key={pessoa.codigo}>
                       <td className="ps-3 fw-bold" style={{ whiteSpace: 'nowrap' }}>{pessoa.codigo}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{pessoa.nome}</td>
@@ -161,7 +161,7 @@ function App() {
                           {pessoa.tipoPessoa === 0 ? 'Física' : 'Jurídica'}
                         </Badge>
                       </td>
-                      <td style={{ whiteSpace: 'nowrap' }}>{formatDocument(pessoa.documento, pessoa.tipoPessoa)}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{formatarDocumento(pessoa.documento, pessoa.tipoPessoa)}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{new Date(pessoa.dataNascimento).toLocaleDateString('pt-BR')}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>{pessoa.celular}</td>
                       <td style={{ whiteSpace: 'nowrap', maxWidth: '200px' }} className="text-truncate" title={pessoa.email}>
@@ -215,27 +215,27 @@ function App() {
           <Row className="align-items-center g-2">
             <Col xs={12} md={6}>
               <small className="text-muted">
-                Mostrando <strong>{Math.min(indexOfLastRecord, filteredData.length)}</strong> de <strong>{filteredData.length}</strong> registro{filteredData.length !== 1 ? 's' : ''}
+                Mostrando <strong>{Math.min(indiceUltimoRegistro, dadosFiltrados.length)}</strong> de <strong>{dadosFiltrados.length}</strong> registro{dadosFiltrados.length !== 1 ? 's' : ''}
               </small>
             </Col>
             <Col xs={12} md={6}>
               <div className="d-flex justify-content-center justify-content-md-end">
                 <div className="btn-group" role="group">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    if (totalPages <= 5) return i + 1;
-                    if (currentPage <= 3) return i + 1;
-                    if (currentPage >= totalPages - 2) return totalPages - 4 + i;
-                    return currentPage - 2 + i;
-                  }).filter((page, index, array) => array.indexOf(page) === index && page > 0 && page <= totalPages)
-                    .map(number => (
+                  {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                    if (totalPaginas <= 5) return i + 1;
+                    if (paginaAtual <= 3) return i + 1;
+                    if (paginaAtual >= totalPaginas - 2) return totalPaginas - 4 + i;
+                    return paginaAtual - 2 + i;
+                  }).filter((pagina, indice, array) => array.indexOf(pagina) === indice && pagina > 0 && pagina <= totalPaginas)
+                    .map(numero => (
                       <Button
-                        key={number}
-                        variant={currentPage === number ? 'primary' : 'outline-secondary'}
+                        key={numero}
+                        variant={paginaAtual === numero ? 'primary' : 'outline-secondary'}
                         size="sm"
-                        onClick={() => paginate(number)}
-                        className={currentPage === number ? 'active' : ''}
+                        onClick={() => paginar(numero)}
+                        className={paginaAtual === numero ? 'active' : ''}
                       >
-                        {number}
+                        {numero}
                       </Button>
                     ))}
                 </div>
