@@ -2,28 +2,8 @@ import React, { useEffect, useState } from "react";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Table,
-  Button,
-  Spinner,
-  Badge,
-  Form,
-  InputGroup,
-  Alert
-} from 'react-bootstrap';
-import {
-  PlusCircle,
-  Edit2 as Pencil,
-  Trash2,
-  Search,
-  User,
-  Home as Building,
-  MapPin as MapPinIcon
-} from 'react-feather';
+import { Container, Row, Col, Card, Table, Button, Spinner, Badge, Form, InputGroup, Alert } from 'react-bootstrap';
+import { PlusCircle, Edit2 as Pencil, Trash2, Search, User, Home as Building, MapPin as MapPinIcon } from 'react-feather';
 
 
 function App() {
@@ -38,16 +18,16 @@ function App() {
   const fetchData = async () => {
     const startTime = Date.now();
     const MIN_LOADING_TIME = 3000;
-    
+
     try {
       const response = await axios.get(baseUrl);
       const endTime = Date.now();
       const timeElapsed = endTime - startTime;
-      
+
       if (timeElapsed < MIN_LOADING_TIME) {
         await new Promise(resolve => setTimeout(resolve, MIN_LOADING_TIME - timeElapsed));
       }
-      
+
       setData(response.data);
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
