@@ -410,7 +410,6 @@ function App() {
 
   const paginar = (numeroPagina) => setPaginaAtual(numeroPagina);
 
-  // Efeito para lidar com o redimensionamento
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (!resizing.isResizing || resizing.columnIndex === null) return;
@@ -423,7 +422,6 @@ function App() {
       
       const newWidth = resizing.startWidth + (e.clientX - resizing.startX);
       
-      // Atualiza o estado com a nova largura
       setColumnWidths(prev => ({
         ...prev,
         [resizing.columnIndex]: newWidth
@@ -465,7 +463,6 @@ function App() {
     }
   };
 
-  // Função para obter o estilo de largura da coluna
   const getColumnStyle = (index) => {
     if (columnWidths[index]) {
       return { width: `${columnWidths[index]}px`, minWidth: `${columnWidths[index]}px` };
