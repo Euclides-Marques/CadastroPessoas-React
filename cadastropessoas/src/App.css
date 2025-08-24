@@ -62,6 +62,35 @@ body {
   letter-spacing: 0.5px;
   color: #6c757d;
   padding: 0.75rem 1rem;
+  position: relative;
+  user-select: none;
+}
+
+.table thead th::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+  cursor: col-resize;
+  background-color: transparent;
+  transition: background-color 0.2s;
+}
+
+.table thead th:hover::after {
+  background-color: #52575c;
+  opacity: 0.5;
+}
+
+.table thead th.resizing {
+  background-color: #f8f9fa;
+  user-select: none;
+}
+
+.table thead th.resizing::after {
+  background-color: #52575c;
+  opacity: 1;
 }
 
 .table tbody td {

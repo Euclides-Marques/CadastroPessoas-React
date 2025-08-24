@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import axios from 'axios';
@@ -8,6 +8,9 @@ import { PlusCircle, Edit2 as Pencil, Trash2, Search, User, Home as Building, Ma
 
 
 function App() {
+  const tableRef = useRef(null);
+  const [resizing, setResizing] = useState({ isResizing: false, columnIndex: null, startX: 0, startWidth: 0 });
+  const [columnWidths, setColumnWidths] = useState({});
   const baseUrl = 'https://localhost:7171/Pessoas';
   const baseUrlCreate = 'https://localhost:7171/CreatePessoas';
   const baseUrlUpdate = 'https://localhost:7171/UpdatePessoa';
@@ -407,6 +410,69 @@ function App() {
 
   const paginar = (numeroPagina) => setPaginaAtual(numeroPagina);
 
+  // Efeito para lidar com o redimensionamento
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!resizing.isResizing || resizing.columnIndex === null) return;
+      
+      const table = tableRef.current;
+      if (!table) return;
+      
+      const th = table.querySelectorAll('th')[resizing.columnIndex];
+      if (!th) return;
+      
+      const newWidth = resizing.startWidth + (e.clientX - resizing.startX);
+      
+      // Atualiza o estado com a nova largura
+      setColumnWidths(prev => ({
+        ...prev,
+        [resizing.columnIndex]: newWidth
+      }));
+    };
+
+    const handleMouseUp = () => {
+      setResizing({ isResizing: false, columnIndex: null, startX: 0, startWidth: 0 });
+    };
+
+    if (resizing.isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [resizing]);
+
+  const handleResizeStart = (e, index) => {
+    const th = e.currentTarget;
+    const startX = e.clientX;
+    const startWidth = th.offsetWidth;
+    
+    setResizing({ isResizing: true, columnIndex: index, startX, startWidth });
+    th.classList.add('resizing');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  };
+
+  const handleResizeEnd = (e) => {
+    if (resizing.isResizing) {
+      const th = e.currentTarget;
+      th.classList.remove('resizing');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  };
+
+  // Função para obter o estilo de largura da coluna
+  const getColumnStyle = (index) => {
+    if (columnWidths[index]) {
+      return { width: `${columnWidths[index]}px`, minWidth: `${columnWidths[index]}px` };
+    }
+    return {};
+  };
+
   return (
     <Container fluid className="py-2 py-md-3 py-lg-4 px-2 px-md-3">
       {notification.show && (
@@ -480,24 +546,85 @@ function App() {
             </Alert>
           ) : (
             <div className="table-responsive" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-              <Table hover className="align-middle mb-0" style={{ minWidth: '1200px' }}>
+              <Table ref={tableRef} hover className="align-middle mb-0" style={{ minWidth: '1200px' }}>
                 <thead className="table-light">
                   <tr>
-                    <th className="ps-3" style={{ minWidth: '50px' }}>#</th>
-                    <th style={{ minWidth: '200px', whiteSpace: 'nowrap' }}>Nome</th>
-                    <th style={{ minWidth: '100px', whiteSpace: 'nowrap' }}>Tipo</th>
-                    <th style={{ minWidth: '150px', whiteSpace: 'nowrap' }}>Documento</th>
-                    <th style={{ minWidth: '120px', whiteSpace: 'nowrap' }}>Nascimento</th>
-                    <th style={{ minWidth: '120px', whiteSpace: 'nowrap' }}>Celular</th>
-                    <th style={{ minWidth: '200px', whiteSpace: 'nowrap' }}>Email</th>
-                    <th style={{ minWidth: '100px', whiteSpace: 'nowrap' }}>CEP</th>
-                    <th style={{ minWidth: '200px', whiteSpace: 'nowrap' }}>Endereço</th>
-                    <th style={{ minWidth: '100px', whiteSpace: 'nowrap' }}>Número</th>
-                    <th style={{ minWidth: '150px', whiteSpace: 'nowrap' }}>Bairro</th>
-                    <th style={{ minWidth: '150px', whiteSpace: 'nowrap' }}>Cidade</th>
-                    <th style={{ minWidth: '80px', whiteSpace: 'nowrap' }}>Estado</th>
-                    <th style={{ minWidth: '150px', whiteSpace: 'nowrap' }}>Complemento</th>
-                    <th style={{ minWidth: '150px', whiteSpace: 'nowrap', textAlign: 'center' }}>Ações</th>
+                    <th 
+                    className="ps-3" 
+                    style={{ minWidth: '50px', ...getColumnStyle(0) }}
+                    onMouseDown={(e) => handleResizeStart(e, 0)}
+                    onMouseUp={handleResizeEnd}
+                  >#</th>
+                    <th 
+                      style={{ minWidth: '200px', whiteSpace: 'nowrap', ...getColumnStyle(1) }}
+                      onMouseDown={(e) => handleResizeStart(e, 1)}
+                      onMouseUp={handleResizeEnd}
+                    >Nome</th>
+                    <th 
+                      style={{ minWidth: '100px', whiteSpace: 'nowrap', ...getColumnStyle(2) }}
+                      onMouseDown={(e) => handleResizeStart(e, 2)}
+                      onMouseUp={handleResizeEnd}
+                    >Tipo</th>
+                    <th 
+                      style={{ minWidth: '150px', whiteSpace: 'nowrap', ...getColumnStyle(3) }}
+                      onMouseDown={(e) => handleResizeStart(e, 3)}
+                      onMouseUp={handleResizeEnd}
+                    >Documento</th>
+                    <th 
+                      style={{ minWidth: '120px', whiteSpace: 'nowrap', ...getColumnStyle(4) }}
+                      onMouseDown={(e) => handleResizeStart(e, 4)}
+                      onMouseUp={handleResizeEnd}
+                    >Nascimento</th>
+                    <th 
+                      style={{ minWidth: '120px', whiteSpace: 'nowrap', ...getColumnStyle(5) }}
+                      onMouseDown={(e) => handleResizeStart(e, 5)}
+                      onMouseUp={handleResizeEnd}
+                    >Celular</th>
+                    <th 
+                      style={{ minWidth: '200px', whiteSpace: 'nowrap', ...getColumnStyle(6) }}
+                      onMouseDown={(e) => handleResizeStart(e, 6)}
+                      onMouseUp={handleResizeEnd}
+                    >Email</th>
+                    <th 
+                      style={{ minWidth: '100px', whiteSpace: 'nowrap', ...getColumnStyle(7) }}
+                      onMouseDown={(e) => handleResizeStart(e, 7)}
+                      onMouseUp={handleResizeEnd}
+                    >CEP</th>
+                    <th 
+                      style={{ minWidth: '200px', whiteSpace: 'nowrap', ...getColumnStyle(8) }}
+                      onMouseDown={(e) => handleResizeStart(e, 8)}
+                      onMouseUp={handleResizeEnd}
+                    >Endereço</th>
+                    <th 
+                      style={{ minWidth: '100px', whiteSpace: 'nowrap', ...getColumnStyle(9) }}
+                      onMouseDown={(e) => handleResizeStart(e, 9)}
+                      onMouseUp={handleResizeEnd}
+                    >Número</th>
+                    <th 
+                      style={{ minWidth: '150px', whiteSpace: 'nowrap', ...getColumnStyle(10) }}
+                      onMouseDown={(e) => handleResizeStart(e, 10)}
+                      onMouseUp={handleResizeEnd}
+                    >Bairro</th>
+                    <th 
+                      style={{ minWidth: '150px', whiteSpace: 'nowrap', ...getColumnStyle(11) }}
+                      onMouseDown={(e) => handleResizeStart(e, 11)}
+                      onMouseUp={handleResizeEnd}
+                    >Cidade</th>
+                    <th 
+                      style={{ minWidth: '80px', whiteSpace: 'nowrap', ...getColumnStyle(12) }}
+                      onMouseDown={(e) => handleResizeStart(e, 12)}
+                      onMouseUp={handleResizeEnd}
+                    >Estado</th>
+                    <th 
+                      style={{ minWidth: '150px', whiteSpace: 'nowrap', ...getColumnStyle(13) }}
+                      onMouseDown={(e) => handleResizeStart(e, 13)}
+                      onMouseUp={handleResizeEnd}
+                    >Complemento</th>
+                    <th 
+                      style={{ minWidth: '150px', whiteSpace: 'nowrap', textAlign: 'center', ...getColumnStyle(14) }}
+                      onMouseDown={(e) => handleResizeStart(e, 14)}
+                      onMouseUp={handleResizeEnd}
+                    >Ações</th>
                   </tr>
                 </thead>
                 <tbody>
