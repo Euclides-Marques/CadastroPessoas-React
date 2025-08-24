@@ -19,6 +19,7 @@ Frontend desenvolvido em React para o sistema de Cadastro de Pessoas. Esta aplic
 
 2. **Instale as dependências**
    ```bash
+   cd cadastropessoas
    npm install
    ```
 
