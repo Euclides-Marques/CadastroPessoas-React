@@ -12,10 +12,13 @@ function App() {
   const baseUrlCreate = 'https://localhost:7171/CreatePessoas';
   const baseUrlUpdate = 'https://localhost:7171/UpdatePessoa';
   const baseUrlDelete = 'https://localhost:7171/DeletePessoa';
+  const baseUrlSearchByCodigo = 'https://localhost:7171/PessoasBy';
+  const baseUrlSearchByNome = 'https://localhost:7171/PessoasByNome';
 
   const [dados, setDados] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [termoBusca, setTermoBusca] = useState('');
+  const [searchInput, setSearchInput] = useState('');
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [mostrarModal, setShowModal] = useState(false);
   const [tipoPessoaSelecionado, setTipoPessoaSelecionado] = useState('');
@@ -144,22 +147,35 @@ function App() {
     }
   };
 
-  const buscarDados = async () => {
+  const buscarDados = async (searchTerm = '') => {
     const tempoInicial = Date.now();
     const TEMPO_MINIMO_CARREGAMENTO = 3000;
+    setCarregando(true);
 
     try {
-      const resposta = await axios.get(baseUrl);
+      let url = baseUrl;
+      
+      if (searchTerm) {
+        if (!isNaN(searchTerm)) {
+          const response = await axios.get(`${baseUrlSearchByCodigo}/${searchTerm}`);
+          setDados(response.data ? [response.data] : []);
+        } else {
+          const response = await axios.get(`${baseUrlSearchByNome}?nome=${encodeURIComponent(searchTerm)}`);
+          setDados(Array.isArray(response.data) ? response.data : []);
+        }
+      } else {
+        const resposta = await axios.get(url);
+        setDados(Array.isArray(resposta.data) ? resposta.data : []);
+      }
+      
       const tempoFinal = Date.now();
       const tempoDecorrido = tempoFinal - tempoInicial;
 
       if (tempoDecorrido < TEMPO_MINIMO_CARREGAMENTO) {
         await new Promise(resolver => setTimeout(resolver, TEMPO_MINIMO_CARREGAMENTO - tempoDecorrido));
       }
-
-      setDados(resposta.data);
     } catch (erro) {
-      return;
+      setDados([]);
     } finally {
       setCarregando(false);
     }
@@ -169,12 +185,7 @@ function App() {
     buscarDados();
   }, []);
 
-  const dadosFiltrados = dados.filter(pessoa =>
-    Object.values(pessoa).some(
-      valor => valor &&
-        valor.toString().toLowerCase().includes(termoBusca.toLowerCase())
-    )
-  );
+  const dadosFiltrados = [...dados];
 
   const indiceUltimoRegistro = paginaAtual * registrosPorPagina;
   const indicePrimeiroRegistro = indiceUltimoRegistro - registrosPorPagina;
@@ -323,6 +334,12 @@ function App() {
     }));
   };
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    buscarDados(searchInput);
+    setPaginaAtual(1);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -430,29 +447,23 @@ function App() {
         <Card.Body className="p-2 p-md-3">
           <div className="d-flex justify-content-between align-items-center mb-3">
             <div style={{ width: '300px' }}>
-              <InputGroup size="sm">
-                <Form.Control
-                  placeholder="Buscar pelo código ou pelo nome..."
-                  value={termoBusca}
-                  onChange={(e) => {
-                    setTermoBusca(e.target.value);
-                    setPaginaAtual(1);
-                  }}
-                  className="border-start-0"
-                />
-                <Button 
-                  variant="outline-secondary" 
-                  id="btn-pesquisar-cep" 
-                  onClick={() => buscarEnderecoPorCep(formData.cep)}
-                  disabled={isSearchingCep}
-                >
-                  {isSearchingCep ? (
-                    <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                  ) : (
+              <Form onSubmit={handleSearch} className="w-100">
+                <InputGroup size="sm">
+                  <Form.Control
+                    placeholder="Buscar pelo código ou pelo nome..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSearch(e)}
+                    className="border-start-0"
+                  />
+                  <Button 
+                    variant="outline-secondary" 
+                    type="submit"
+                  >
                     <Search size={14} />
-                  )}
-                </Button>
-              </InputGroup>
+                  </Button>
+                </InputGroup>
+              </Form>
             </div>
           </div>
 
